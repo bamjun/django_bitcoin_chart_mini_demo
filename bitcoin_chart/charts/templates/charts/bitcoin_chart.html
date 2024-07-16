@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bitcoin Real-time Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/min/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
+</head>
+<body>
+    <h1>Bitcoin Real-time Chart</h1>
+    
+    <canvas id="bitcoinChart" width="400" height="200"></canvas>
+
+    <script>
+        const ctx = document.getElementById('bitcoinChart').getContext('2d');
+        const bitcoinChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Bitcoin Price (USD)',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'second',
+                            tooltipFormat: 'll HH:mm:ss',
+                            displayFormats: {
+                                second: 'HH:mm:ss'
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+{% comment %} 
+        // Fetch Bitcoin price data from a JSON endpoint    
+        // 장고를 통해서, 가격가져오기
+        function fetchBitcoinPrice() {
+            fetch('/charts/bitcoin-price-data/')
+                .then(response => response.json())
+                .then(data => {
+                    const now = new Date();
+                    bitcoinChart.data.labels.push(now);
+                    bitcoinChart.data.datasets[0].data.push(data.price);
+                    bitcoinChart.update();
+                });
+        }
+{% endcomment %}
+
+        // 장고를 안통하고, 직접 api를 통해서 가격가져오기, 장고 실행안해도 됨.
+        function fetchBitcoinPrice() {
+            fetch('https://api.coindesk.com/v1/bpi/currentprice/BTC.json')
+                .then(response => response.json())
+                .then(data => {
+                    const price = data.bpi.USD.rate_float;
+                    const now = new Date();
+                    bitcoinChart.data.labels.push(now);
+                    bitcoinChart.data.datasets[0].data.push(price);
+                    bitcoinChart.update();
+                })
+                .catch(error => console.error('Error fetching Bitcoin price:', error));
+        }
+
+        setInterval(fetchBitcoinPrice, 1000);
+
+    </script>
+</body>
+</html>
